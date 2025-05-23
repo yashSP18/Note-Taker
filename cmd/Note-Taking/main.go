@@ -20,6 +20,9 @@ func main() {
 
 	app := NewApp(serverConfig)
 
+	// Create tables before starting the app
+	// db.CreateDynamodbTables(serverConfig)
+
 	fmt.Println("App created") // <-- add this
 
 	err = app.Start()

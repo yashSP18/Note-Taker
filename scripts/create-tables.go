@@ -25,58 +25,40 @@ func CreateDynamodbTables(configI *config.Config) {
 
 	ddb := dynamodb.New(awsSession)
 
-	CreateUsersTable(ddb)
+	createUsersTable(ddb)
+	createNotesTable(ddb)
 
 }
 
 // CreateUsersTable creates the Users table with composite keys and a GSI on entityType
-func CreateUsersTable(ddb *dynamodb.DynamoDB) {
-	tableName := "Users"
-
-	// Check if table already exists
-	_, err := ddb.DescribeTable(&dynamodb.DescribeTableInput{
-		TableName: aws.String(tableName),
-	})
-	if err == nil {
-		fmt.Println("Users table already exists")
-		return
-	}
-
+func createUsersTable(ddb *dynamodb.DynamoDB) {
 	input := &dynamodb.CreateTableInput{
-		TableName: aws.String(tableName),
+		TableName: aws.String("Users"),
 
 		AttributeDefinitions: []*dynamodb.AttributeDefinition{
 			{
-				AttributeName: aws.String("pk"),
+				AttributeName: aws.String("userId"),
 				AttributeType: aws.String("S"),
 			},
 			{
-				AttributeName: aws.String("sk"),
-				AttributeType: aws.String("S"),
-			},
-			{
-				AttributeName: aws.String("entityType"),
+				AttributeName: aws.String("email"),
 				AttributeType: aws.String("S"),
 			},
 		},
 
 		KeySchema: []*dynamodb.KeySchemaElement{
 			{
-				AttributeName: aws.String("pk"),
+				AttributeName: aws.String("userId"),
 				KeyType:       aws.String("HASH"),
-			},
-			{
-				AttributeName: aws.String("sk"),
-				KeyType:       aws.String("RANGE"),
 			},
 		},
 
 		GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{
 			{
-				IndexName: aws.String("EntityIndex"),
+				IndexName: aws.String("UserEmailIndex"),
 				KeySchema: []*dynamodb.KeySchemaElement{
 					{
-						AttributeName: aws.String("entityType"),
+						AttributeName: aws.String("email"),
 						KeyType:       aws.String("HASH"),
 					},
 				},
@@ -96,11 +78,72 @@ func CreateUsersTable(ddb *dynamodb.DynamoDB) {
 		},
 	}
 
-	_, err = ddb.CreateTable(input)
+	_, err := ddb.CreateTable(input)
 	if err != nil {
-		fmt.Println(" Error creating NoteTaking table:", err)
+		fmt.Println("Error creating Users table:", err)
 		return
 	}
 
-	fmt.Println("NoteTaking table created successfully")
+	fmt.Println("Users table created successfully!")
+}
+
+// createNotesTable creates the Notes table with composite keys and a GSI on entityType
+func createNotesTable(ddb *dynamodb.DynamoDB) {
+	input := &dynamodb.CreateTableInput{
+		TableName: aws.String("Notes"),
+
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("noteId"),
+				AttributeType: aws.String("S"),
+			},
+			{
+				AttributeName: aws.String("userId"),
+				AttributeType: aws.String("S"),
+			},
+		},
+
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("noteId"),
+				KeyType:       aws.String("HASH"),
+			},
+			{
+				AttributeName: aws.String("userId"),
+				KeyType:       aws.String("RANGE"),
+			},
+		},
+
+		GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{
+			{
+				IndexName: aws.String("UserNotesIndex"),
+				KeySchema: []*dynamodb.KeySchemaElement{
+					{
+						AttributeName: aws.String("userId"),
+						KeyType:       aws.String("HASH"),
+					},
+				},
+				Projection: &dynamodb.Projection{
+					ProjectionType: aws.String("ALL"),
+				},
+				ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+					ReadCapacityUnits:  aws.Int64(5),
+					WriteCapacityUnits: aws.Int64(5),
+				},
+			},
+		},
+
+		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+			ReadCapacityUnits:  aws.Int64(5),
+			WriteCapacityUnits: aws.Int64(5),
+		},
+	}
+
+	_, err := ddb.CreateTable(input)
+	if err != nil {
+		fmt.Println("Error creating Notes table:", err)
+		return
+	}
+
+	fmt.Println("Notes table created successfully!")
 }
