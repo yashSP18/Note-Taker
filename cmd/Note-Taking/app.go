@@ -58,6 +58,9 @@ func (app *App) Start() error {
 		Handler: app.router,
 	}
 
+	// create table script
+	// scripts.CreateDynamodbTables(app.ddb)
+
 	// This blocks unless the server crashes
 	err = server.ListenAndServe()
 	if err != nil {
