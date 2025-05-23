@@ -3,38 +3,38 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/yash-gkmit/NOTE-TAKER/config"
 	"github.com/yash-gkmit/NOTE-TAKER/routes"
 )
 
 type App struct {
 	router http.Handler
 	ddb    *dynamodb.DynamoDB
+	config *config.Config
 }
 
-func NewApp() *App {
-	region := os.Getenv("AWS_REGION")
-	ddbEndpoint := os.Getenv("DYNAMO_ENDPOINT")
+func NewApp(configI *config.Config) *App {
 
 	awsSession := session.Must(session.NewSessionWithOptions(session.Options{
 		Config: aws.Config{
-			Region:   &region,
-			Endpoint: &ddbEndpoint,
+			Region:   &configI.AwsConfig.Region,
+			Endpoint: &configI.DynamoEndpoint,
 			Credentials: credentials.NewStaticCredentials(
-				os.Getenv("AWS_ACCESS_KEY"),
-				os.Getenv("AWS_SECRET_KEY"),
+				configI.AwsConfig.AccessKey,
+				configI.AwsConfig.SecretKey,
 				"",
 			),
 		},
 	}))
 
 	app := &App{
-		ddb: dynamodb.New(awsSession),
+		ddb:    dynamodb.New(awsSession),
+		config: configI,
 	}
 
 	app.loadRoutes()

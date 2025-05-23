@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/joho/godotenv"
+	"github.com/yash-gkmit/NOTE-TAKER/config"
 )
 
 func main() {
@@ -14,7 +15,10 @@ func main() {
 		fmt.Println("Error loading .env file:", err)
 	}
 
-	app := NewApp()
+	config.Init()
+	serverConfig := config.GetInstance()
+
+	app := NewApp(serverConfig)
 
 	fmt.Println("App created") // <-- add this
 

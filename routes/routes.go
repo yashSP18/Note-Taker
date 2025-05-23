@@ -17,7 +17,7 @@ func NewRoutes(ddb *dynamodb.DynamoDB) http.Handler {
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`Hello World`))
+		w.Write([]byte(`Hello Yash!`))
 	})
 
 	return router
