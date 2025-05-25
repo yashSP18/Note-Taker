@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -22,6 +23,8 @@ func NewNoteRepo(ddb *dynamodb.DynamoDB) *NoteRepo {
 		TableName: "Notes",
 	}
 }
+
+var NoteNotFound = errors.New("Notes not found")
 
 func (r *NoteRepo) CreateNote(user *models.NoteModel) error {
 
@@ -66,4 +69,35 @@ func (r *NoteRepo) GetAllNote(userId string) ([]*models.NoteModel, error) {
 	}
 
 	return notes, nil
+}
+
+func (r *NoteRepo) GetNoteById(userId, noteId string) (*models.NoteModel, error) {
+	input := &dynamodb.GetItemInput{
+		TableName: aws.String(r.TableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"noteId": {
+				S: aws.String(noteId),
+			},
+			"userId": {
+				S: aws.String(userId),
+			},
+		},
+	}
+
+	result, err := r.Client.GetItem(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get note: %w", err)
+	}
+
+	if result.Item == nil {
+		return nil, NoteNotFound
+	}
+
+	var note models.NoteModel
+	err = dynamodbattribute.UnmarshalMap(result.Item, &note)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal result: %w", err)
+	}
+
+	return &note, nil
 }

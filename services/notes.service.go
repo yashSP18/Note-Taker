@@ -28,3 +28,11 @@ func (s *NoteService) GetAllNote(ctx context.Context, userId string) ([]*models.
 	}
 	return notes, nil
 }
+
+func (s *NoteService) GetNote(ctx context.Context, userId, noteId string) (*models.NoteModel, error) {
+	note, err := s.noteRepo.GetNoteById(userId, noteId)
+	if err != nil {
+		return nil, err
+	}
+	return note, nil
+}
