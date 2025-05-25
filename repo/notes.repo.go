@@ -18,7 +18,7 @@ type NoteRepo struct {
 func NewNoteRepo(ddb *dynamodb.DynamoDB) *NoteRepo {
 	return &NoteRepo{
 		Client:    ddb,
-		GSI:       "UserIndex",
+		GSI:       "UserNotesIndex",
 		TableName: "Notes",
 	}
 }
@@ -39,4 +39,31 @@ func (r *NoteRepo) CreateNote(user *models.NoteModel) error {
 	}
 
 	return nil
+}
+
+func (r *NoteRepo) GetAllNote(userId string) ([]*models.NoteModel, error) {
+
+	input := &dynamodb.QueryInput{
+		TableName:              aws.String(r.TableName),
+		IndexName:              aws.String(r.GSI),
+		KeyConditionExpression: aws.String("userId = :userId"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":userId": {
+				S: aws.String(userId),
+			},
+		},
+	}
+
+	result, err := r.Client.Query(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query Notes: %w", err)
+	}
+
+	var notes []*models.NoteModel
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &notes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal query result: %w", err)
+	}
+
+	return notes, nil
 }

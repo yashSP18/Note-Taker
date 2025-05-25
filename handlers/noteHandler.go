@@ -66,3 +66,40 @@ func (h *NoteHandler) CreateNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Note created successfully", "noteId": note.NoteID})
 }
+
+func (h *NoteHandler) GetAllNote(w http.ResponseWriter, r *http.Request) {
+
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		helpers.SendHandlerErrResponse(w, "Authorization header missing", http.StatusUnauthorized)
+		return
+	}
+
+	tokenParts := strings.Split(authHeader, "Bearer ")
+	if len(tokenParts) != 2 {
+		helpers.SendHandlerErrResponse(w, "Invalid token format", http.StatusUnauthorized)
+		return
+	}
+
+	claims, err := helpers.VerifyJWT(tokenParts[1])
+	if err != nil {
+		helpers.SendHandlerErrResponse(w, "Invalid or expired token", http.StatusUnauthorized)
+		return
+	}
+
+	userId, ok := claims["userId"].(string)
+	if !ok {
+		helpers.SendHandlerErrResponse(w, "Invalid user ID in token", http.StatusUnauthorized)
+		return
+	}
+
+	notes, err := h.noteService.GetAllNote(r.Context(), userId)
+	if err != nil {
+		helpers.SendHandlerErrResponse(w, "Failed to fetch notes", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(notes)
+}
