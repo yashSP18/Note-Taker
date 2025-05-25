@@ -39,8 +39,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := map[string]interface{}{
-		"message": "User registered successfully",
+	response := map[string]any{
+		"message": "User register successfully",
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -69,7 +69,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := map[string]interface{}{
+	response := map[string]any{
 		"message": "Login successful",
 		"token":   token,
 	}

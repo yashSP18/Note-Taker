@@ -30,5 +30,6 @@ func loadApiRoutes(
 ) func(router chi.Router) {
 	return func(r chi.Router) {
 		r.Route("/auth", AuthRoutes(ddb))
+		r.Route("/user", UserRoutes(ddb))
 	}
 }
