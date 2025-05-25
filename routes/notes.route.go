@@ -20,5 +20,6 @@ func NoteRoutes(ddb *dynamodb.DynamoDB) func(router chi.Router) {
 		r.Post("/", noteHandler.CreateNote)
 		r.Get("/", noteHandler.GetAllNote)
 		r.Get("/{id}", noteHandler.GetNote)
+		r.Patch("/{id}", noteHandler.UpdateNote)
 	}
 }

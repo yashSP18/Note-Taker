@@ -101,3 +101,23 @@ func (r *NoteRepo) GetNoteById(userId, noteId string) (*models.NoteModel, error)
 
 	return &note, nil
 }
+
+func (r *NoteRepo) UpdateNote(note *models.NoteModel) error {
+
+	noteMap, err := dynamodbattribute.MarshalMap(note)
+	if err != nil {
+		return fmt.Errorf("failed to marshal note: %w", err)
+	}
+
+	input := &dynamodb.PutItemInput{
+		TableName: aws.String(r.TableName),
+		Item:      noteMap,
+	}
+
+	_, err = r.Client.PutItem(input)
+	if err != nil {
+		return fmt.Errorf("failed to update note: %w", err)
+	}
+
+	return nil
+}

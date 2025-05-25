@@ -151,3 +151,44 @@ func (h *NoteHandler) GetNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(note)
 }
+
+func (h *NoteHandler) UpdateNote(w http.ResponseWriter, r *http.Request) {
+	noteId := chi.URLParam(r, "id")
+	if noteId == "" {
+		helpers.SendHandlerErrResponse(w, "Missing noteId in the request path", http.StatusBadRequest)
+		return
+	}
+
+	userId, err := helpers.GetUserIDFromContext(r.Context())
+	if err != nil {
+		helpers.SendHandlerErrResponse(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	var NoteRequestModel types.UpdateNoteReqModel
+	err = json.NewDecoder(r.Body).Decode(&NoteRequestModel)
+	if err != nil {
+		helpers.SendHandlerErrResponse(w, "Invalid input data", http.StatusBadRequest)
+		return
+	}
+
+	validationError := NoteRequestModel.Validate()
+	if validationError != nil {
+		helpers.SendHandlerErrResponse(w, validationError.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	updatedNote, err := h.noteService.UpdateNote(r.Context(), userId, noteId, &NoteRequestModel)
+	if err != nil {
+		if err == repo.NoteNotFound {
+			helpers.SendHandlerErrResponse(w, "Note not found", http.StatusNotFound)
+		} else {
+			helpers.SendHandlerErrResponse(w, "Failed to update note", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedNote)
+}
