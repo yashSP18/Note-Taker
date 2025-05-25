@@ -97,3 +97,23 @@ func (r *UserRepo) GetUserById(userId string) (*models.UserModel, error) {
 
 	return &user, nil
 }
+
+// GetAllUsers fetches all users from DynamoDB.
+func (r *UserRepo) GetAllUsers() ([]*models.UserModel, error) {
+	input := &dynamodb.ScanInput{
+		TableName: aws.String("Users"),
+	}
+
+	result, err := r.Client.Scan(input)
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*models.UserModel
+	err = dynamodbattribute.UnmarshalListOfMaps(result.Items, &users) //converts the DynamoDB items into a slice of UserModel structs.
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
