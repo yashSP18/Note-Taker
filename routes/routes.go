@@ -31,5 +31,6 @@ func loadApiRoutes(
 	return func(r chi.Router) {
 		r.Route("/auth", AuthRoutes(ddb))
 		r.Route("/user", UserRoutes(ddb))
+		r.Route("/note", NoteRoutes(ddb))
 	}
 }
