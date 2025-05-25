@@ -192,3 +192,29 @@ func (h *NoteHandler) UpdateNote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(updatedNote)
 }
+
+func (h *NoteHandler) DeleteNote(w http.ResponseWriter, r *http.Request) {
+	noteId := chi.URLParam(r, "id")
+	if noteId == "" {
+		helpers.SendHandlerErrResponse(w, "Missing noteId in the request path", http.StatusBadRequest)
+		return
+	}
+
+	userId, err := helpers.GetUserIDFromContext(r.Context())
+	if err != nil {
+		helpers.SendHandlerErrResponse(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	err = h.noteService.DeleteNote(r.Context(), userId, noteId)
+	if err != nil {
+		if err == repo.NoteNotFound {
+			helpers.SendHandlerErrResponse(w, "Note not found", http.StatusNotFound)
+		} else {
+			helpers.SendHandlerErrResponse(w, "Failed to delete note", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

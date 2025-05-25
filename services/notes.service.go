@@ -64,3 +64,12 @@ func (s *NoteService) UpdateNote(ctx context.Context, userId, noteId string, Not
 
 	return existingNote, nil
 }
+
+func (s *NoteService) DeleteNote(ctx context.Context, userId, noteId string) error {
+
+	err := s.noteRepo.DeleteNote(userId, noteId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

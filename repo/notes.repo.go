@@ -121,3 +121,25 @@ func (r *NoteRepo) UpdateNote(note *models.NoteModel) error {
 
 	return nil
 }
+
+func (r *NoteRepo) DeleteNote(userId, noteId string) error {
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(r.TableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"noteId": {
+				S: aws.String(noteId),
+			},
+			"userId": {
+				S: aws.String(userId),
+			},
+		},
+		ConditionExpression: aws.String("attribute_exists(noteId)"),
+	}
+
+	_, err := r.Client.DeleteItem(input)
+	if err != nil {
+		return fmt.Errorf("failed to delete note: %w", err)
+	}
+
+	return nil
+}
