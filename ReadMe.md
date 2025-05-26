@@ -49,7 +49,7 @@ The project uses the following branches for streamlined development:
 - **main**:  
   Production-ready, stable version of the application. Deployed versions are pulled from here.
 
-- **dev**:  
+- **staging**:  
   Active development branch. New features, testing, and bug fixes are done here before merging into `main`.
 
 ---
