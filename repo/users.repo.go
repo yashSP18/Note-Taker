@@ -117,3 +117,22 @@ func (r *UserRepo) GetAllUsers() ([]*models.UserModel, error) {
 
 	return users, nil
 }
+
+func (r *UserRepo) DeleteUser(userId string) error {
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(r.TableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"userId": {
+				S: aws.String(userId),
+			},
+		},
+		ConditionExpression: aws.String("attribute_exists(userId)"), // ✅ check for userId instead
+	}
+
+	_, err := r.Client.DeleteItem(input)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	return nil
+}

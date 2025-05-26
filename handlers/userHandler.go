@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/go-chi/chi/v5"
 	"github.com/yash-gkmit/NOTE-TAKER/helpers"
 	"github.com/yash-gkmit/NOTE-TAKER/repo"
 	"github.com/yash-gkmit/NOTE-TAKER/types"
@@ -81,4 +83,28 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	userId := chi.URLParam(r, "id")
+	if userId == "" {
+		helpers.SendHandlerErrResponse(w, "Missing userId in the request path", http.StatusBadRequest)
+		return
+	}
+
+	err := h.userRepo.DeleteUser(userId)
+	if err != nil {
+		if strings.Contains(err.Error(), dynamodb.ErrCodeConditionalCheckFailedException) {
+			helpers.SendHandlerErrResponse(w, "User not found", http.StatusNotFound)
+		} else {
+			helpers.SendHandlerErrResponse(w, "Failed to delete user", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User deleted successfully",
+	})
 }
