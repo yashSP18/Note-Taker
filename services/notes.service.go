@@ -52,9 +52,6 @@ func (s *NoteService) UpdateNote(ctx context.Context, userId, noteId string, Not
 	if NoteRequestModel.Content != nil {
 		existingNote.Content = *NoteRequestModel.Content
 	}
-	if NoteRequestModel.Status != nil {
-		existingNote.Status = *NoteRequestModel.Status
-	}
 	existingNote.UpdatedAt = time.Now()
 
 	err = s.noteRepo.UpdateNote(existingNote)
