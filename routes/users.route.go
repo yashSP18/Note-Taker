@@ -15,5 +15,6 @@ func UserRoutes(ddb *dynamodb.DynamoDB) func(router chi.Router) {
 	return func(r chi.Router) {
 		r.Get("/me", userHandler.GetMe)
 		r.Get("/", userHandler.GetAllUsers)
+		r.Delete("/{id}", userHandler.DeleteUser)
 	}
 }
