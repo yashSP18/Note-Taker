@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/yash-gkmit/NOTE-TAKER/helpers"
 	"github.com/yash-gkmit/NOTE-TAKER/repo"
 	"github.com/yash-gkmit/NOTE-TAKER/services"
@@ -216,5 +216,9 @@ func (h *NoteHandler) DeleteNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Note deleted successfully",
+	})
 }
